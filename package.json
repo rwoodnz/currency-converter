@@ -9,6 +9,7 @@
   "author": "Richard Wood",
   "license": "ISC",
   "dependencies": {
-    "hapi": "^16.5.0"
+    "hapi": "^16.5.0",
+    "line-reader": "^0.4.0"
   }
 }

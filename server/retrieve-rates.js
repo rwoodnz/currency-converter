@@ -8,7 +8,7 @@ const currencyDataKey = '618a01bc477c4f0db5ff8f5aac15625b'
 const Joi = require('joi');
 const schema = Joi.object().pattern(/^[A-Z]{3}$/, Joi.number().positive())
 
-var retrieveRates = function(done) {
+function retrieveRates (done) {
 
     let url = currencyDataUrl + '?app_id=' + currencyDataKey
 

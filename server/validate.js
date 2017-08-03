@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 
-var validate = function(query, symbols) {
+function validate (query, symbols) {
 
     // Symbol list is dynamic, so schema is reset for each validation
     let schema = {

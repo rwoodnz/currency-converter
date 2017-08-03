@@ -1,8 +1,8 @@
 'use strict';
 
-var convert = function(currencyData, amount, from, to) { 
+function convert(rates, query) { 
 
-    return amount * currencyData[to] / currencyData[from]
+    return query.amount * rates[query.to] / rates[query.from]
 
 }
 
