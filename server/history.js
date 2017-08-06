@@ -22,17 +22,17 @@ function updateStats (to, USDResult, done) {
 
     fs.readFile(statisticsFile, "utf8", function (err, content) {
         if (err) {
-            return done({ FileReadError: err })
+            return done(err);
         }
-        let existingStats = JSON.parse(content)
+        let existingStats = JSON.parse(content);
 
-        let update = calculateUpdate(existingStats, to, USDResult)
+        let update = calculateUpdate(existingStats, to, USDResult);
 
         fs.writeFile(statisticsFile, JSON.stringify(update), function (err) {
             if(err) {
-                return done({ FileWriteError: err })
+                return done( err );
             }
-            done(null, update)
+            done(null, update);
         });
     })
 

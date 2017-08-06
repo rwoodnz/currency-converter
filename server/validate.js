@@ -13,8 +13,8 @@ function validate (query, symbols) {
     var { error, value } = Joi.validate(query, schema, { abortEarly: false });
 
     return error 
-        ? { ValidationError: error.details } 
-        : null
+        ? error.details
+        : null ;
 }
 
 module.exports = validate;

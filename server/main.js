@@ -1,6 +1,7 @@
 'use strict';
 
 const Hapi = require('hapi');
+const Boom = require('boom');
 
 const server = new Hapi.Server();
 const location = { port: 3000, host: 'localhost' };
@@ -26,28 +27,28 @@ server.route({
 
             if (err !== null) {
                 console.error(err);
-                return reply(JSON.stringify(err));
+                return reply(Boom.badImplementation(JSON.stringify(err)));
             } else {
                 let symbols = Object.keys(rates);
                 let validationError = validate(request.query, symbols);
 
                 if (validationError !== null) {
                     console.error(validationError);
-                    return reply(JSON.stringify(validationError));
+                    return reply(Boom.badRequest(JSON.stringify(validationError)));
                 } else {
                     let result = convert(rates, request.query);
-                    let USDAmount = convert(rates, { amount: request.query.amount, from: request.query.from, to: 'USD' })
+                    let USDAmount = convert(rates, { amount: request.query.amount, from: request.query.from, to: 'USD' });
 
                     history.updateStats(request.query.to, USDAmount, returnUpdate);
 
                     function returnUpdate(err, update) {
                         if (err) {
-                            return reply(JSON.stringify(err))
+                            return reply(Boom.badImplementation(JSON.stringify(err)));
                         } 
                         // Add result to update data
                         update.result = result;
-                        console.log(update)
-                        return reply(update)
+                        console.log(update);
+                        return reply(update);
                     }
                 }
             }
