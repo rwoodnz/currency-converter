@@ -1,0 +1,56 @@
+'use strict';
+
+const http = require('http');
+
+const currenciesUrl = 'http://openexchangerates.org/api/currencies.json';
+const ratesUrl = 'http://openexchangerates.org/api/latest.json';
+const ratesDataKey = '618a01bc477c4f0db5ff8f5aac15625b'
+
+const Joi = require('joi');
+const Validate = require('./validate.js');
+
+function currencies (done) {
+    return retrieveValid(currenciesUrl, Validate.currenciesSchema, done);
+}
+
+function rates (done) {
+    let url = ratesUrl + '?app_id=' + ratesDataKey;
+    return retrieveValid(url, Validate.ratesSchema, done);
+}
+
+function retrieveValid(url, schema, done) {
+    http.get(url, function (res) {
+        let body = '';
+        let result = {};
+
+        res.on('data', function (data) {
+            body += data;
+        });
+
+        res.on('end', function () {
+            let err = null;
+            let jsonBody = {};
+
+            try {
+                jsonBody = JSON.parse(body);
+
+                let error = Validate.json(jsonBody, schema)
+
+                if (error) {
+                    done(error.details);
+                }
+            } catch (e) {
+                done(e.message);
+            };
+            done(err, jsonBody);
+        });
+    })
+    .on('error', function (e) {
+        done(e.message);
+    });
+}
+
+module.exports = { 
+    currencies: currencies,
+    rates: rates
+}

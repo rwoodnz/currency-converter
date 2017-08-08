@@ -2,7 +2,7 @@
 
 function convert(rates, query) { 
 
-    return query.amount * rates[query.to] / rates[query.from];
+    return query.amount * (rates[query.to] / rates[query.from]);
 
 }
 

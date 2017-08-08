@@ -7,56 +7,58 @@ function ensureStatisticsFileExists() {
 
     fs.stat(statisticsFile, function (err, stat) {
         if (err !== null) {
-            let initialStats = {
+            let initialStatistics = {
                 totalAmountConverted: 0,
                 totalNumberOfConversions: 0,
                 currencyCounts: {}
             }
-            fs.writeFile(statisticsFile, JSON.stringify(initialStats));
+            fs.writeFile(statisticsFile, JSON.stringify(initialStatistics));
         }
     });
 
 }
 
-function updateStats (to, USDResult, done) {
+function readStatistics (done) {
 
-    fs.readFile(statisticsFile, "utf8", function (err, content) {
+    fs.readFile(statisticsFile, 'utf8', function (err, content) {
         if (err) {
             return done(err);
         }
-        let existingStats = JSON.parse(content);
-
-        let update = calculateUpdate(existingStats, to, USDResult);
-
-        fs.writeFile(statisticsFile, JSON.stringify(update), function (err) {
-            if(err) {
-                return done( err );
-            }
-            done(null, update);
-        });
-    })
+        done(null, JSON.parse(content))
+    });
 
 }
 
-function calculateUpdate (stats, to, USDResult) {
+function writeStatistics(updatedStatistics, done) {
 
-    stats.totalAmountConverted += USDResult;
-    stats.totalNumberOfConversions += 1;
+    fs.writeFile(statisticsFile, JSON.stringify(updatedStatistics), function (err) {
+        if (err) {
+            return done(err);
+        }
+        done(null, updatedStatistics);
+    });
 
-    if (stats.currencyCounts.hasOwnProperty(to)) {
-        stats.currencyCounts[to] += 1;
+}
+
+function calculateUpdate (statistics, to, USDResult) {
+
+    statistics.totalAmountConverted += USDResult;
+    statistics.totalNumberOfConversions += 1;
+
+    if (statistics.currencyCounts.hasOwnProperty(to)) {
+        statistics.currencyCounts[to] += 1;
     } else {
         // Add to currency list
-        stats.currencyCounts[to] = 1;
+        statistics.currencyCounts[to] = 1;
     }
 
-    return stats;
-
+    return statistics;
 }
 
 module.exports = { 
     ensureStatisticsFileExists: ensureStatisticsFileExists, 
-    updateStats: updateStats,
+    readStatistics: readStatistics,
+    writeStatistics: writeStatistics,
     calculateUpdate: calculateUpdate
 };
 

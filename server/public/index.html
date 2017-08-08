@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Currency Converter</title>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="./index.js"></script>
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+    <h1>
+        Currency Converter
+    </h1>
+
+    <div>
+        <div class="item">
+            <label for="currency-from">From</label>
+            <select name="currency-from" id="currency-from" class="currency">Currency
+            </select>
+        </div>
+
+        <div class="item">
+            <label for="amount">Enter amount</label>
+            <input type="number" min="0" onkeypress="return event.charCode >= 48 || event.charCode === 13" name="amount" id="amount" class="ui-corner-all ui-button number-entry" autofocus>
+        </div>
+    </div>
+
+    <div>
+        <div class="item">
+            <label for="currency-to">To</label>
+            <select name="currency-to" id="currency-to" class="currency">Currency
+            </select>
+        </div>
+
+        <div class="item">
+            <label for="result">Result</label>
+            <div id="result" class="ui-corner-all ui-button number-box"></div>
+        </div>
+    </div>
+
+    <div class="summary">
+        <p>Most popular destination currency/currencies: <span id="top-destination-total"></span></p>
+        <p>Total amount converted in USD: <span id="usd-total"></span></p>
+        <p>Total requests made: <span id="request-count"></span></p>
+    </div>
+</body>
+
+</html>
