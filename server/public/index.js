@@ -4,10 +4,17 @@ $(document).ready(function() {
     const statisticsURL = 'http://localhost:3000/statistics';
     const conversionURL = 'http://localhost:3000/convert';
 
+    const failCurrenciesMessage = 'Sorry, system failure. Could not load currencies';
+    const failStatisticsMessage = 'Sorry, system failure. Could not load statistics';
+    const failConversionMessage = 'Sorry, system failure. Could not convert';
+
     var options = [];
 
-    $.getJSON(currenciesURL, loadCurrencies);
-    $.getJSON(statisticsURL, presentStatistics);
+    $.getJSON(currenciesURL, loadCurrencies)
+        .fail(() => setError(failCurrenciesMessage));
+
+    $.getJSON(statisticsURL, presentStatistics)
+        .fail(() => setError(failStatisticsMessage));
 
     function loadCurrencies(data) {
 
@@ -38,16 +45,22 @@ $(document).ready(function() {
     }
 
     function convert() {
+        clearError();
         let amount = $('#amount').val();
         let from = $('#currency-from').val();
         let to = $('#currency-to').val();
 
         if (amount) {
             let query = `?amount=${amount}&from=${from}&to=${to}`;
-            $.getJSON(conversionURL+query, presentAnswer);
+            $.getJSON(conversionURL+query, presentAnswer)
+                .fail(() => setError(failConversionMessage));
         } else {
             clearAnswer();
         }
+    }
+
+    function presentFail() {
+        $('#result').text('')
     }
 
     function clearAnswer() {
@@ -79,6 +92,14 @@ $(document).ready(function() {
         $('#top-destination-total').text(maxKey);
         $('#usd-total').text(data.totalAmountConverted);
         $('#request-count').text(data.totalNumberOfConversions);
+    }
+
+    function setError(message) {
+        $('#error-message').append(message+"</br>")
+    }
+
+    function clearError() {
+        $('#error-message').text('');
     }
 
 });
