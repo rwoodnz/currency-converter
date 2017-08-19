@@ -1,9 +1,3 @@
 'use strict';
 
-function convert(rates, query) { 
-
-    return query.amount * (rates[query.to] / rates[query.from]);
-
-}
-
-module.exports = convert;
+module.exports = (rates, query) => query.amount * (rates[query.to] / rates[query.from]);

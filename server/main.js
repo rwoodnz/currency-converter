@@ -43,11 +43,9 @@ server.route({
 server.route({
     method: 'GET',
     path: '/currencies',
-    handler: function(request, reply) {
+    handler: (request, reply) => {
 
-        Retrieve.currencies(getCurrencies)
-
-        function getCurrencies(err, currencies) {
+        const getCurrencies = (err, currencies) => {
             if (err != null) {
                 console.error(err);
                 return reply(Boom.badImplementation(JSON.stringify(err)));
@@ -55,17 +53,17 @@ server.route({
                 return reply(currencies);
             }
         }
+
+        Retrieve.currencies(getCurrencies)
     }
 })
 
 server.route({
     method: 'GET',
     path: '/statistics',
-    handler: function (request, reply) {
+    handler: (request, reply) => {
 
-        History.readStatistics(getStatistics)
-
-        function getStatistics(readErr, statistics) {
+        const getStatistics = (readErr, statistics) => {
             if (readErr) {
                 console.error(readErr);
                 return reply(Boom.badImplementation(JSON.stringify(readErr)));
@@ -73,18 +71,43 @@ server.route({
                 return reply(statistics);
             }
         }
+
+        History.readStatistics(getStatistics)
     }
 })
 
 server.route({
     method: 'GET',
     path: '/convert',
-    handler: function (request, reply) {
+    handler: (request, reply) => {
 
-        // Always get the latest rates
-        Retrieve.rates(validateQuery);
+        const validateQuery = (err, ratesPackage) => {
 
-        function validateQuery(err, ratesPackage) {
+            const processQuery = (writeErr, update) => {
+                if (writeErr) {
+                    console.error(writeErr);
+                    return reply(Boom.badImplementation(JSON.stringify(writeErr)));
+                }
+                // Combine conversion result with update data
+                update.result = Convert(ratesPackage.rates, request.query);;
+
+                return reply(update);
+            }
+
+            const processStatistics = (rates, query) => {
+                let USDAmount = Convert(rates, { amount: query.amount, from: query.from, to: 'USD' });
+
+                const updateStatistics = (readErr, existingStatistics) => {
+                    if (readErr) {
+                        console.error(readErr);
+                        return reply(Boom.badImplementation(JSON.stringify(readErr)));
+                    }
+                    let updatedStatistics = History.calculateUpdate(existingStatistics, query.to, USDAmount)
+                    History.writeStatistics(updatedStatistics, processQuery)
+                }
+
+                History.readStatistics(updateStatistics)
+            }
 
             if (err) {
                 console.error(err);
@@ -100,33 +123,11 @@ server.route({
                     processStatistics(ratesPackage.rates, request.query)
                 }
             }
-
-            function processStatistics(rates, query) {
-                let USDAmount = Convert(rates, { amount: query.amount, from: query.from, to: 'USD' });
-
-                History.readStatistics(updateStatistics)
-
-                function updateStatistics(readErr, existingStatistics) {
-                    if (readErr) {
-                        console.error(readErr);
-                        return reply(Boom.badImplementation(JSON.stringify(readErr)));
-                    }
-                    let updatedStatistics = History.calculateUpdate(existingStatistics, query.to, USDAmount)
-                    History.writeStatistics(updatedStatistics, processQuery)
-                }
-            }
-
-            function processQuery(writeErr, update) {
-                if (writeErr) {
-                    console.error(writeErr);
-                    return reply(Boom.badImplementation(JSON.stringify(writeErr)));
-                }
-                // Combine conversion result with update data
-                update.result = Convert(ratesPackage.rates, request.query);;
-
-                return reply(update);
-            }
         }
+
+        // Always get the latest rates
+        Retrieve.rates(validateQuery);
+
     }
 });
 

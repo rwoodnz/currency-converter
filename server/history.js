@@ -3,7 +3,7 @@
 const fs = require('fs');
 const statisticsFile = './statistics.txt';
 
-function ensureStatisticsFileExists() {
+const ensureStatisticsFileExists = () => {
 
     fs.stat(statisticsFile, function (err, stat) {
         if (err !== null) {
@@ -18,7 +18,7 @@ function ensureStatisticsFileExists() {
 
 }
 
-function readStatistics (done) {
+const readStatistics = done => {
 
     fs.readFile(statisticsFile, 'utf8', function (err, content) {
         if (err) {
@@ -29,7 +29,7 @@ function readStatistics (done) {
 
 }
 
-function writeStatistics(updatedStatistics, done) {
+const writeStatistics = (updatedStatistics, done) => {
 
     fs.writeFile(statisticsFile, JSON.stringify(updatedStatistics), function (err) {
         if (err) {
@@ -40,7 +40,7 @@ function writeStatistics(updatedStatistics, done) {
 
 }
 
-function calculateUpdate (statistics, to, USDResult) {
+const calculateUpdate = (statistics, to, USDResult) => {
 
     statistics.totalAmountConverted += USDResult;
     statistics.totalNumberOfConversions += 1;
@@ -56,9 +56,9 @@ function calculateUpdate (statistics, to, USDResult) {
 }
 
 module.exports = { 
-    ensureStatisticsFileExists: ensureStatisticsFileExists, 
-    readStatistics: readStatistics,
-    writeStatistics: writeStatistics,
-    calculateUpdate: calculateUpdate
+    ensureStatisticsFileExists, 
+    readStatistics,
+    writeStatistics,
+    calculateUpdate
 };
 
