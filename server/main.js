@@ -45,16 +45,27 @@ server.route({
     path: '/currencies',
     handler: (request, reply) => {
 
-        const getCurrencies = (err, currencies) => {
-            if (err != null) {
-                console.error(err);
-                return reply(boom.badImplementation(JSON.stringify(err)));
-            } else {
-                return reply(currencies);
-            }
-        }
+        retrieve.currencies().then((response) => {
 
-        retrieve.currencies(getCurrencies)
+            let error = validate.json(response.data, validate.currenciesSchema)
+
+            if (error) {
+                return reply(boom.badImplementation(JSON.stringify(error)));
+            }
+            return reply(response.data);
+
+        }, (errorMessage) => {
+
+            console.error(errorMessage);
+            return reply(boom.badImplementation(JSON.stringify(errorMessage)));
+
+        }).catch((e) => {
+            if (e.code === 'ENOTFOUND') {
+                console.error('Unable to connect to API service')
+            } else {
+                console.error(e.message)
+            }
+        });
     }
 })
 
@@ -104,26 +115,31 @@ server.route({
             return reply(update);
         }
 
-        const validateQuery = (validationError, ratesPackage) => {
+        // Always get the latest rates
+        retrieve.rates().then((response) => {
+
+            let error = validate.json(response.data, validate.ratesSchema)
+
+            if (error) {
+                return reply(boom.badImplementation(JSON.stringify(error)));
+            }
+
+            let symbols = Object.keys(response.data.rates);
+            let validationError = validate.query(request.query, symbols);
 
             if (validationError) {
-                console.error(err);
-                return reply(boom.badImplementation(JSON.stringify(err)));
+                console.error(validationError);
+                return reply(boom.badRequest(JSON.stringify(validationError.details)));
             } else {
-                let symbols = Object.keys(ratesPackage.rates);
-                let validationError = validate.query(request.query, symbols);
-
-                if (validationError) {
-                    console.error(validationError);
-                    return reply(boom.badRequest(JSON.stringify(validationError.details)));
-                } else {
-                    processStatistics(ratesPackage.rates, request.query)
-                }
+                processStatistics(response.data.rates, request.query)
             }
-        }
 
-        // Always get the latest rates
-        retrieve.rates(validateQuery);
+        }, (errorMessage) => {
+
+            console.error(errorMessage);
+            return reply(boom.badImplementation(JSON.stringify(errorMessage)));
+
+        })
 
     }
 });
