@@ -1,7 +1,7 @@
 $(document).ready(function() {
 
-    converter.getConverter();
+    converter.getCurrencies(converter.loadCurrencies);
 
-    statistics.getStatistics();
+    statistics.getStatistics(statistics.presentStatistics);
 
 });

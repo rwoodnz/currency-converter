@@ -27,7 +27,7 @@ const statistics = (() => {
         $('#request-count').text(data.totalNumberOfConversions);
     }
 
-    const getStatistics = () => $.getJSON(statisticsURL, presentStatistics).fail(() => setError(failStatisticsMessage));
+    const getStatistics = (done) => $.getJSON(statisticsURL, done).fail(() => setError(failStatisticsMessage));
 
     return {
         getStatistics,

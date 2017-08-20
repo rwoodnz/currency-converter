@@ -12,32 +12,19 @@ const ensureStatisticsFileExists = () => {
                 totalNumberOfConversions: 0,
                 currencyCounts: {}
             }
-            fs.writeFile(statisticsFile, JSON.stringify(initialStatistics));
+            fs.writeFileSync(statisticsFile, JSON.stringify(initialStatistics));
         }
     });
 
 }
 
 const readStatistics = done => {
-
-    fs.readFile(statisticsFile, 'utf8', function (err, content) {
-        if (err) {
-            return done(err);
-        }
-        done(null, JSON.parse(content))
-    });
-
+    let result = fs.readFileSync(statisticsFile, 'utf8');
+    return JSON.parse(result)
 }
 
-const writeStatistics = (updatedStatistics, done) => {
-
-    fs.writeFile(statisticsFile, JSON.stringify(updatedStatistics), function (err) {
-        if (err) {
-            return done(err);
-        }
-        done(null, updatedStatistics);
-    });
-
+const writeStatistics = (updatedStatistics) => {
+        fs.writeFileSync(statisticsFile, JSON.stringify(updatedStatistics))
 }
 
 const calculateUpdate = (statistics, to, USDResult) => {

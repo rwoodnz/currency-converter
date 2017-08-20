@@ -1,22 +1,22 @@
 'use strict';
 
-const Path = require('path');
-const Hapi = require('hapi');
-const Inert = require('inert');
-const Boom = require('boom');
+const path = require('path');
+const hapi = require('hapi');
+const inert = require('inert');
+const boom = require('boom');
 
-const Retrieve = require('./retrieve.js');
-const Convert = require('./convert.js');
-const Validate = require('./validate.js');
-const History = require('./history.js');
+const retrieve = require('./retrieve.js');
+const convert = require('./convert.js');
+const validate = require('./validate.js');
+const history = require('./history.js');
 
-History.ensureStatisticsFileExists();
+history.ensureStatisticsFileExists();
 
-const server = new Hapi.Server({
+const server = new hapi.Server({
     connections: {
         routes: {
             files: {
-                relativeTo: Path.join(__dirname, 'public')
+                relativeTo: path.join(__dirname, 'public')
             }
         }
     }
@@ -26,7 +26,7 @@ const location = { port: 3000, host: 'localhost' };
 
 server.connection(location);
 
-server.register(Inert, () => { });
+server.register(inert, () => { });
 
 server.route({
     method: 'GET',
@@ -48,13 +48,13 @@ server.route({
         const getCurrencies = (err, currencies) => {
             if (err != null) {
                 console.error(err);
-                return reply(Boom.badImplementation(JSON.stringify(err)));
+                return reply(boom.badImplementation(JSON.stringify(err)));
             } else {
                 return reply(currencies);
             }
         }
 
-        Retrieve.currencies(getCurrencies)
+        retrieve.currencies(getCurrencies)
     }
 })
 
@@ -63,16 +63,14 @@ server.route({
     path: '/statistics',
     handler: (request, reply) => {
 
-        const getStatistics = (readErr, statistics) => {
-            if (readErr) {
-                console.error(readErr);
-                return reply(Boom.badImplementation(JSON.stringify(readErr)));
-            } else {
-                return reply(statistics);
-            }
+        try {
+            let statistics = history.readStatistics()
+            return reply(statistics);
+        } catch (readErr) {
+            console.error(readErr);
+            return reply(boom.badImplementation(JSON.stringify(readErr)));
         }
-
-        History.readStatistics(getStatistics)
+        
     }
 })
 
@@ -81,44 +79,43 @@ server.route({
     path: '/convert',
     handler: (request, reply) => {
 
-        const validateQuery = (err, ratesPackage) => {
+        const processStatistics = (rates, query) => {
+            let USDAmount = convert(rates, { amount: query.amount, from: query.from, to: 'USD' });
 
-            const processQuery = (writeErr, update) => {
-                if (writeErr) {
-                    console.error(writeErr);
-                    return reply(Boom.badImplementation(JSON.stringify(writeErr)));
-                }
-                // Combine conversion result with update data
-                update.result = Convert(ratesPackage.rates, request.query);;
+            let existingStatistics;
+            try {
+                existingStatistics = history.readStatistics();
+            } catch (readErr) {
+                console.error(readErr);
+                return reply(boom.badImplementation(JSON.stringify(readErr)));
+            }
+            
+            let update = history.calculateUpdate(existingStatistics, query.to, USDAmount)
 
-                return reply(update);
+            try {
+                history.writeStatistics(update);
+            } catch (writeErr) {
+                console.error(writeErr);
+                return reply(boom.badImplementation(Json.stringify(writeErr)));
             }
 
-            const processStatistics = (rates, query) => {
-                let USDAmount = Convert(rates, { amount: query.amount, from: query.from, to: 'USD' });
+            update.result = convert(rates, request.query);
 
-                const updateStatistics = (readErr, existingStatistics) => {
-                    if (readErr) {
-                        console.error(readErr);
-                        return reply(Boom.badImplementation(JSON.stringify(readErr)));
-                    }
-                    let updatedStatistics = History.calculateUpdate(existingStatistics, query.to, USDAmount)
-                    History.writeStatistics(updatedStatistics, processQuery)
-                }
+            return reply(update);
+        }
 
-                History.readStatistics(updateStatistics)
-            }
+        const validateQuery = (validationError, ratesPackage) => {
 
-            if (err) {
+            if (validationError) {
                 console.error(err);
-                return reply(Boom.badImplementation(JSON.stringify(err)));
+                return reply(boom.badImplementation(JSON.stringify(err)));
             } else {
                 let symbols = Object.keys(ratesPackage.rates);
-                let validationError = Validate.query(request.query, symbols);
+                let validationError = validate.query(request.query, symbols);
 
                 if (validationError) {
                     console.error(validationError);
-                    return reply(Boom.badRequest(JSON.stringify(validationError.details)));
+                    return reply(boom.badRequest(JSON.stringify(validationError.details)));
                 } else {
                     processStatistics(ratesPackage.rates, request.query)
                 }
@@ -126,7 +123,7 @@ server.route({
         }
 
         // Always get the latest rates
-        Retrieve.rates(validateQuery);
+        retrieve.rates(validateQuery);
 
     }
 });

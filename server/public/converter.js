@@ -6,10 +6,6 @@ const converter = (() => {
     const currenciesURL = 'http://localhost:3000/currencies';
     const conversionURL = 'http://localhost:3000/convert';
 
-    const setError = message => $('#error-message').append(message + "</br>")
-
-    const clearError = () => $('#error-message').text('');
-
     const clearAnswer = () => $('#result').text('');
 
     const presentAnswer = data => {
@@ -64,10 +60,11 @@ const converter = (() => {
         conversionSetup(options)
     }
 
-    const getConverter = () => $.getJSON(currenciesURL, loadCurrencies).fail(() => setError(failCurrenciesMessage));
+    const getCurrencies = (done) => $.getJSON(currenciesURL, done).fail(() => setError(failCurrenciesMessage));
 
     return {
-        getConverter
+        getCurrencies,
+        loadCurrencies
     }
 
 })();

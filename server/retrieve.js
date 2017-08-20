@@ -6,7 +6,7 @@ const currenciesUrl = 'http://openexchangerates.org/api/currencies.json';
 const ratesUrl = 'http://openexchangerates.org/api/latest.json';
 const ratesDataKey = '618a01bc477c4f0db5ff8f5aac15625b'
 
-const Joi = require('joi');
+const joi = require('joi');
 const Validate = require('./validate.js');
 
 const currencies = done => retrieveValid(currenciesUrl, Validate.currenciesSchema, done);
